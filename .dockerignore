@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+src
+public
+index.html
+vite.config.ts
+tsconfig*.json
+eslint.config.js
+*.md
+.vscode
+dist
