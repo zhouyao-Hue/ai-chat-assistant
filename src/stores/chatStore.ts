@@ -50,9 +50,7 @@ export const useChatStore = create<ChatStore>()(
 
       switchSession: (id) =>
         set((s) => {
-          const saved = s.currentSessionId
-            ? { ...s.messagesBySession, [s.currentSessionId]: s.messages }
-            : s.messagesBySession;
+          const saved = s.currentSessionId ? { ...s.messagesBySession, [s.currentSessionId]: s.messages } : s.messagesBySession;
           return {
             messagesBySession: saved,
             currentSessionId: id,
@@ -61,16 +59,11 @@ export const useChatStore = create<ChatStore>()(
           };
         }),
 
-      addMessages: (msgs) =>
-        set((s) => ({ messages: [...s.messages, ...msgs] })),
+      addMessages: (msgs) => set((s) => ({ messages: [...s.messages, ...msgs] })),
 
       updateLastAssistant: (token) =>
         set((s) => ({
-          messages: s.messages.map((m, i) =>
-            i === s.messages.length - 1 && m.role === "assistant"
-              ? { ...m, content: m.content + token }
-              : m
-          ),
+          messages: s.messages.map((m, i) => (i === s.messages.length - 1 && m.role === "assistant" ? { ...m, content: m.content + token } : m)),
         })),
 
       removeLastAssistant: () =>
@@ -89,12 +82,8 @@ export const useChatStore = create<ChatStore>()(
       deleteSession: (id) =>
         set((s) => {
           const filtered = s.sessions.filter((ses) => ses.id !== id);
-          const nextId =
-            s.currentSessionId === id ? (filtered[0]?.id ?? null) : s.currentSessionId;
-          const nextMessages =
-            s.currentSessionId === id
-              ? (nextId ? s.messagesBySession[nextId] ?? [] : [])
-              : s.messages;
+          const nextId = s.currentSessionId === id ? (filtered[0]?.id ?? null) : s.currentSessionId;
+          const nextMessages = s.currentSessionId === id ? (nextId ? (s.messagesBySession[nextId] ?? []) : []) : s.messages;
           return {
             sessions: filtered,
             currentSessionId: nextId,
@@ -112,6 +101,8 @@ export const useChatStore = create<ChatStore>()(
       partialize: (state) => ({
         sessions: state.sessions,
         currentSessionId: state.currentSessionId,
+        messages: state.messages,
+        messagesBySession: state.messagesBySession,
       }),
     },
   ),

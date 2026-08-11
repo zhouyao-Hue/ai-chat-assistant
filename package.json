@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "node --env-file=server/.env server/index.js",
-    "dev:all": "concurrently \"npm run dev\" \"npm run server\""
+    "dev:all": "concurrently \"npm run dev\" \"npm run server\"",
+    "prepare": "husky"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -21,6 +22,7 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.18.1",
     "react-virtuoso": "^4.18.11",
+    "web-vitals": "^6.0.1",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
@@ -34,6 +36,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "husky": "^9.1.7",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12"

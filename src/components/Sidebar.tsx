@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { NavLink } from "react-router-dom";
 import SessionList from "./SessionList";
 
@@ -40,4 +41,4 @@ function Sidebar() {
     </div>
   );
 }
-export default Sidebar;
+export default memo(Sidebar);

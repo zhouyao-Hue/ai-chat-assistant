@@ -2,27 +2,49 @@ import MessageList from "../components/MessageList";
 import ChatInput from "../components/ChatInput";
 import ErrorBoundary from "../components/ErrorBoundary";
 import { useChat } from "../hooks/useChat";
-import { useChatStore } from "../stores/chatStore";
-import { useState, useEffect } from "react";
-
+import { useTheme } from "../context/ThemeContext";
+import { useRef, useEffect } from "react";
 export default function ChatPage() {
-  type Theme = "light" | "dark";
-  const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem("theme") as Theme) || "light");
-  const messages = useChatStore((s) => s.messages);
-  const streamingMessageId = useChatStore((s) => s.streamingMessageId);
-  const { sendMessage, stopGeneration, retryLastMessage } = useChat();
+  const { toggleTheme } = useTheme();
+  const { messages, isLoading, isStreaming, sendMessage, stopGeneration, retryLastMessage } = useChat();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
+    if (!isStreaming) {
+      inputRef.current?.focus();
+    }
+  }, [isStreaming]);
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", borderBottom: "1px solid var(--border-color)" }}>
+        <span style={{ fontWeight: 600 }}>AI Chat Assistant</span>
+        {import.meta.env.DEV && <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>BFF: {import.meta.env.VITE_BFF_URL || "(默认 localhost:3001)"}</div>}
+        <button type="button" onClick={toggleTheme} aria-label="切换浅色/深色主题">
+          切换主题
+        </button>
+      </header>
       <ErrorBoundary>
-        <MessageList messages={messages} isLoading={messages.length === 0 && streamingMessageId !== null} isStreaming={streamingMessageId !== null} />
-        <ChatInput onSend={sendMessage} onStop={stopGeneration} onRetry={retryLastMessage} isStreaming={streamingMessageId !== null} />
-        <button onClick={() => setTheme((p) => (p === "light" ? "dark" : "light"))}>Toggle Theme</button>
+        {messages.length === 0 && !isLoading ? (
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: 0.7,
+              padding: 24,
+              textAlign: "center",
+            }}
+          >
+            <div>
+              <p style={{ fontSize: 18, marginBottom: 8 }}>开始一段新对话</p>
+              <p style={{ fontSize: 14 }}>在下方输入消息，按 Enter 或点发送</p>
+            </div>
+          </div>
+        ) : (
+          <MessageList messages={messages} isLoading={isLoading} isStreaming={isStreaming} />
+        )}
+        <ChatInput ref={inputRef} onSend={sendMessage} onStop={stopGeneration} onRetry={retryLastMessage} isStreaming={isStreaming} />
       </ErrorBoundary>
     </div>
   );

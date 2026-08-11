@@ -14,7 +14,11 @@ export function useChat() {
   const lastUserInputRef = useRef<string>("");
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const messages = useChatStore((s) => s.messages);
+  const streamingMessageId = useChatStore((s) => s.streamingMessageId);
 
+  const isStreaming = streamingMessageId !== null;
+  const isLoading = messages.length === 0 && isStreaming;
   const startStream = useCallback((userInput: string, assistantMsg: Message) => {
     const controller = new AbortController();
     abortRef.current = controller;
@@ -146,6 +150,9 @@ export function useChat() {
   }, []);
 
   return {
+    messages,
+    isStreaming,
+    isLoading,
     sendMessage,
     stopGeneration,
     retryLastMessage,

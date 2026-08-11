@@ -1,5 +1,5 @@
 import type { Message } from "../types";
-import { useState } from "react";
+import { memo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 function formatTime(ts: number): string {
   const date = new Date(ts);
@@ -14,7 +14,7 @@ function formatTime(ts: number): string {
   if (isYesterday) return `昨天 ${date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
   return date.toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
 }
-export default function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({ message }: { message: Message }) {
   const [copied, setCopied] = useState(false);
   const handleCopy = async () => {
     await navigator.clipboard.writeText(message.content);
@@ -37,10 +37,11 @@ export default function MessageBubble({ message }: { message: Message }) {
           </button>
         )}
         <div className="msg-time">{formatTime(message.timestamp)}</div>
-        <button onClick={handleCopy} className="msg-copy-btn">
+        <button type="button" onClick={handleCopy} className="msg-copy-btn" aria-label={copied ? "已复制到剪切板" : "复制消息内容"}>
           {copied ? "已复制!" : "复制"}
         </button>
       </div>
     </div>
   );
 }
+export default memo(MessageBubble);

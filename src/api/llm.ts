@@ -10,8 +10,9 @@ type StreamChatOptions = {
 export async function streamChat(options: StreamChatOptions) {
   const { message, signal, onToken, onDone, onError } = options;
   const { model } = useSettingsStore.getState();
+  const BFF_BASE = import.meta.env.VITE_BFF_URL?.replace(/\/$/, "") || "http://localhost:3001";
   try {
-    const response = await fetch("http://localhost:3001/api/chat/stream", {
+    const response = await fetch(`${BFF_BASE}/api/chat/stream`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
