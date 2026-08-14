@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Message } from "../types";
+import type { Message } from "@/types";
 
 interface Session {
   id: string;

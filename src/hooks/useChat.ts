@@ -1,7 +1,7 @@
 import { useCallback, useRef, useEffect } from "react";
-import { streamChat } from "../api/llm";
-import { useChatStore } from "../stores/chatStore";
-import type { Message } from "../types";
+import { streamChat } from "@/api/llm";
+import { useChatStore } from "@/stores/chatStore";
+import type { Message } from "@/types";
 const MAX_RETRIES = 3;
 const BASE_DELAY = 1000;
 const MAX_DELAY = 30000;

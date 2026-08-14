@@ -1,8 +1,8 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
-import ChatPage from "./pages/ChatPage";
-const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+import Layout from "@/components/Layout";
+import ChatPage from "@/pages/ChatPage";
+const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 
 export default function App() {
   return (

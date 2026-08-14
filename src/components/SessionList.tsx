@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useChatStore } from "../stores/chatStore";
+import { useChatStore } from "@/stores/chatStore";
 
 export default function SessionList() {
   const sessions = useChatStore((s) => s.sessions);

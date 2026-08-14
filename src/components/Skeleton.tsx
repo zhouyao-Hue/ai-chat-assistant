@@ -1,4 +1,4 @@
-import "./Skeleton.css";
+import "@/components/Skeleton.css";
 export default function Skeleton({ lines = 3 }: { lines?: number }) {
   return (
     <div className="skeleton-bubble">

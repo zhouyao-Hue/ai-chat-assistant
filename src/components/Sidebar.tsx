@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { NavLink } from "react-router-dom";
-import SessionList from "./SessionList";
+import SessionList from "@/components/SessionList";
 
 function Sidebar() {
   return (

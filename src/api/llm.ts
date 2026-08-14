@@ -1,4 +1,4 @@
-import { useSettingsStore } from "../stores/settingsStore";
+import { useSettingsStore } from "@/stores/settingsStore";
 type StreamChatOptions = {
   message: string;
   signal?: AbortSignal;

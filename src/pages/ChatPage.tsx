@@ -1,9 +1,9 @@
-import MessageList from "../components/MessageList";
-import ChatInput from "../components/ChatInput";
-import ErrorBoundary from "../components/ErrorBoundary";
-import { useChat } from "../hooks/useChat";
-import { useTheme } from "../context/ThemeContext";
 import { useRef, useEffect } from "react";
+import MessageList from "@/components/MessageList";
+import ChatInput from "@/components/ChatInput";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { useChat } from "@/hooks/useChat";
+import { useTheme } from "@/context/ThemeContext";
 export default function ChatPage() {
   const { toggleTheme } = useTheme();
   const { messages, isLoading, isStreaming, sendMessage, stopGeneration, retryLastMessage } = useChat();

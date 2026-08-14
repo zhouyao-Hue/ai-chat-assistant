@@ -1,4 +1,4 @@
-import { useSettingsStore } from "../stores/settingsStore";
+import { useSettingsStore } from "@/stores/settingsStore";
 
 export default function SettingsPage() {
   const apiKey = useSettingsStore((s) => s.apiKey);

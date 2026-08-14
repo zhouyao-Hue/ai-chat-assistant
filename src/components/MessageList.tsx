@@ -1,8 +1,8 @@
 import { Virtuoso } from "react-virtuoso";
-import type { Message } from "../types";
 import { useCallback } from "react";
-import Skeleton from "./Skeleton";
-import MessageBubble from "./MessageBubble";
+import type { Message } from "@/types";
+import Skeleton from "@/components/Skeleton";
+import MessageBubble from "@/components/MessageBubble";
 
 export default function MessageList({ messages, isLoading, isStreaming }: { messages: Message[]; isLoading: boolean; isStreaming: boolean }) {
   const renderItem = useCallback((_index: number, msg: Message) => <MessageBubble message={msg} />, []);

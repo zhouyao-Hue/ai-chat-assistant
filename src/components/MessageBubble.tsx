@@ -1,4 +1,4 @@
-import type { Message } from "../types";
+import type { Message } from "@/types";
 import { memo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 function formatTime(ts: number): string {
