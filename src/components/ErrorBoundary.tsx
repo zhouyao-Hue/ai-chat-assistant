@@ -1,25 +1,19 @@
-import { Component, type ReactNode } from "react";
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
-interface State {
-  hasError: boolean;
-  error: Error | null;
-}
-class ErroeBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+import { Component } from "react";
+import type { ErrorBoundaryProps, ErrorBoundaryState } from "@/types";
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, resetKey: 0 };
   }
-  static getDerivedStateFromError(error: Error): Partial<State> {
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return { hasError: true, error };
   }
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("ErrorBoundary caught:", error, errorInfo.componentStack);
   }
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, resetKey: this.state.resetKey + 1 });
   };
   render() {
     if (this.state.hasError) {
@@ -36,4 +30,4 @@ class ErroeBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-export default ErroeBoundary;
+export default ErrorBoundary;

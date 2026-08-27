@@ -1,14 +1,9 @@
 import { useSettingsStore } from "@/stores/settingsStore";
-type StreamChatOptions = {
-  message: string;
-  signal?: AbortSignal;
-  onToken: (token: string) => void;
-  onDone?: () => void;
-  onError?: (err: Error) => void;
-};
+import { HttpError, isError, isAbortError } from "@/utils/errors";
+import type { StreamChatOptions } from "@/types";
 
 export async function streamChat(options: StreamChatOptions) {
-  const { message, signal, onToken, onDone, onError } = options;
+  const { messages, signal, onToken, onDone, onError } = options;
   const { model } = useSettingsStore.getState();
   const BFF_BASE = import.meta.env.VITE_BFF_URL?.replace(/\/$/, "") || "http://localhost:3001";
   try {
@@ -18,7 +13,7 @@ export async function streamChat(options: StreamChatOptions) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        message,
+        messages,
         model,
       }),
       signal,
@@ -29,9 +24,7 @@ export async function streamChat(options: StreamChatOptions) {
       if (status === 401) tip = "401：API Key 无效或未授权，请检查设置页";
       else if (status === 429) tip = "429：请求过于频繁或额度不足，请稍后再试";
       else if (status === 500 || status >= 500) tip = `${status}：服务器异常，请稍后再试`;
-      const err = new Error(tip) as Error & { status?: number };
-      err.status = status;
-      throw err;
+      throw new HttpError(tip, status);
     }
     const reader = response.body?.getReader();
     if (!reader) throw new Error("无法读取响应流");
@@ -62,7 +55,8 @@ export async function streamChat(options: StreamChatOptions) {
     }
     onDone?.();
   } catch (err) {
-    if ((err as Error).name === "AbortError") return;
-    onError?.(err as Error);
+    if (isAbortError(err)) return;
+    if (isError(err)) onError?.(err);
+    else onError?.(new Error(String(err)));
   }
 }

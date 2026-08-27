@@ -6,7 +6,7 @@ import { useChat } from "@/hooks/useChat";
 import { useTheme } from "@/context/ThemeContext";
 export default function ChatPage() {
   const { toggleTheme } = useTheme();
-  const { messages, isLoading, isStreaming, sendMessage, stopGeneration, retryLastMessage } = useChat();
+  const { messages, isOnline, isLoading, isStreaming, sendMessage, stopGeneration, retryLastMessage } = useChat();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -44,7 +44,29 @@ export default function ChatPage() {
         ) : (
           <MessageList messages={messages} isLoading={isLoading} isStreaming={isStreaming} />
         )}
-        <ChatInput ref={inputRef} onSend={sendMessage} onStop={stopGeneration} onRetry={retryLastMessage} isStreaming={isStreaming} />
+        {!isOnline && (
+          <div
+            role="status"
+            style={{
+              padding: "8px 16px",
+              background: "var(--offline-banner-bg, #fff3cd)",
+              color: "var(--offline-banner-text, #856404)",
+              borderTop: "1px solid var(--border-color)",
+              fontSize: 14,
+              textAlign: "center",
+            }}
+          >
+            网络已断开，请检查连接后再发送消息
+          </div>
+        )}
+        <ChatInput
+          ref={inputRef}
+          onSend={sendMessage}
+          onStop={stopGeneration}
+          onRetry={retryLastMessage}
+          isStreaming={isStreaming}
+          isOffline={!isOnline}
+        />
       </ErrorBoundary>
     </div>
   );

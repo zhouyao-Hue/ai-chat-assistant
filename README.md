@@ -57,6 +57,7 @@ npm run lint
 ```
 
 - 提交时 husky `pre-commit` 会自动执行上述命令
+- 当前为全量 `eslint .`；项目变大后可接入 **lint-staged**，只检查本次暂存的文件以加快提交
 
 ### 提交规范（Conventional Commits）
 

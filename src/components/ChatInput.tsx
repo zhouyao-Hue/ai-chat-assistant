@@ -1,11 +1,5 @@
 import { forwardRef, memo, useReducer } from "react";
-
-type InputState = {
-  text: string;
-  hasStopped: boolean;
-};
-
-type InputAction = { type: "SET_TEXT"; payload: string } | { type: "MARK_STOPPED" } | { type: "CLEAR_STOPPED" } | { type: "RESET_AFTER_SEND" };
+import type { InputState, InputAction } from "@/types";
 
 const initialState: InputState = { text: "", hasStopped: false };
 
@@ -35,8 +29,9 @@ const ChatInput = memo(
       onStop: () => void;
       onRetry: () => void;
       isStreaming: boolean;
+      isOffline?: boolean;
     }
-  >(function ChatInput({ onSend, onStop, onRetry, isStreaming }, ref) {
+  >(function ChatInput({ onSend, onStop, onRetry, isStreaming, isOffline = false }, ref) {
     const [state, dispatch] = useReducer(inputReducer, initialState);
     const { text, hasStopped } = state;
 
@@ -46,6 +41,7 @@ const ChatInput = memo(
         dispatch({ type: "MARK_STOPPED" });
         return;
       }
+      if (isOffline) return;
       if (hasStopped) {
         onRetry();
         dispatch({ type: "CLEAR_STOPPED" });
@@ -60,26 +56,37 @@ const ChatInput = memo(
       dispatch({ type: "SET_TEXT", payload: e.target.value });
     };
 
-    const buttonColor = isStreaming ? "#e74c3c" : hasStopped ? "#f39c12" : "#3498db";
-    const actionLabel = isStreaming ? "停止生成" : hasStopped ? "重试上一条" : "发送消息";
+    const inputDisabled = isStreaming || isOffline;
+    const buttonColor = isStreaming ? "#e74c3c" : isOffline ? "#95a5a6" : hasStopped ? "#f39c12" : "#3498db";
+    const actionLabel = isStreaming ? "停止生成" : isOffline ? "网络已断开" : hasStopped ? "重试上一条" : "发送消息";
     return (
       <div className="chat-input-bar" aria-busy={isStreaming}>
-        <input ref={ref} className="chat-input-field" aria-label="消息输入框" value={text} placeholder="输入消息..." onChange={handleChange} onKeyDown={(e) => e.key === "Enter" && handleSend()} disabled={isStreaming} />
+        <input
+          ref={ref}
+          className="chat-input-field"
+          aria-label="消息输入框"
+          value={text}
+          placeholder={isOffline ? "网络已断开，无法发送…" : "输入消息..."}
+          onChange={handleChange}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          disabled={inputDisabled}
+        />
         <button
           onClick={handleSend}
           aria-label={actionLabel}
           type="button"
+          disabled={isOffline && !isStreaming}
           style={{
             backgroundColor: buttonColor,
             color: "#fff",
             border: "none",
             borderRadius: 6,
             padding: "8px 16px",
-            cursor: "pointer",
+            cursor: isOffline && !isStreaming ? "not-allowed" : "pointer",
             fontSize: 14,
           }}
         >
-          {isStreaming ? "⏹ 停止" : hasStopped ? "🔄 重试" : "发送"}
+          {isStreaming ? "⏹ 停止" : isOffline ? "离线" : hasStopped ? "🔄 重试" : "发送"}
         </button>
       </div>
     );

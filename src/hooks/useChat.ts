@@ -1,30 +1,39 @@
 import { useCallback, useRef, useEffect } from "react";
 import { streamChat } from "@/api/llm";
+import { HttpError, isAbortError } from "@/utils/errors";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useChatStore } from "@/stores/chatStore";
-import type { Message } from "@/types";
+import { trimMessages } from "@/utils/trimMessages";
+import type { Message, ChatMessagePayload } from "@/types";
 const MAX_RETRIES = 3;
 const BASE_DELAY = 1000;
 const MAX_DELAY = 30000;
 
-type StreamFn = (userInput: string, assistantMsg: Message) => void;
-let _retry: StreamFn | null = null;
-
 export function useChat() {
+  const isOnline = useOnlineStatus();
   const abortRef = useRef<AbortController | null>(null);
   const lastUserInputRef = useRef<string>("");
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const messages = useChatStore((s) => s.messages);
   const streamingMessageId = useChatStore((s) => s.streamingMessageId);
-
+  const startStreamRef = useRef<((userInput: string, assistantMsg: Message) => void) | null>(null);
   const isStreaming = streamingMessageId !== null;
   const isLoading = messages.length === 0 && isStreaming;
   const startStream = useCallback((userInput: string, assistantMsg: Message) => {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    const history = trimMessages(
+      useChatStore
+        .getState()
+        .messages.filter((m) => m.content.trim().length > 0)
+        .map((m) => ({ role: m.role, content: m.content })),
+    );
+    const DEFAULT_SYSTEM_PROMPT = "你是简洁专业的中文技术助手。回答要准确、分点清晰，代码用 markdown 代码块。";
+    const historyWithSystem: ChatMessagePayload[] = [{ role: "system", content: DEFAULT_SYSTEM_PROMPT }, ...history];
     streamChat({
-      message: userInput,
+      messages: historyWithSystem,
       signal: controller.signal,
       onToken: (token) => {
         retryCountRef.current = 0;
@@ -35,9 +44,10 @@ export function useChat() {
         retryCountRef.current = 0;
       },
       onError: (err) => {
-        const status = (err as Error & { status?: number }).status;
-        const tip = err.message || "未知错误";
-        if (status === 401) {
+        if (isAbortError(err)) return;
+        const status = err instanceof HttpError ? err.status : undefined;
+        const tip = !navigator.onLine ? "网络已断开，请检查连接后重试" : err.message || "未知错误";
+        if (status !== undefined && status >= 400 && status < 500 && status !== 429) {
           useChatStore.getState().updateLastAssistant(`\n\n❌ ${tip}`);
           useChatStore.getState().setStreamingMessageId(null);
           retryCountRef.current = 0;
@@ -49,7 +59,7 @@ export function useChat() {
           const delay = Math.min(BASE_DELAY * 2 ** (nextAttempt - 1), MAX_DELAY);
           useChatStore.getState().updateLastAssistant(`\n\n⏳ ${tip}；${delay / 1000}s 后第 ${nextAttempt}/${MAX_RETRIES} 次重试...`);
           retryTimerRef.current = setTimeout(() => {
-            _retry?.(userInput, assistantMsg);
+            startStreamRef.current?.(userInput, assistantMsg);
           }, delay);
         } else {
           useChatStore.getState().updateLastAssistant(`\n\n❌ ${tip}；已达最大重试次数`);
@@ -60,13 +70,11 @@ export function useChat() {
     });
   }, []);
 
-  // eslint-disable-next-line
-  _retry = startStream;
-
   const sendMessage = useCallback(
     (userInput: string) => {
       const trimmed = userInput.trim();
       if (!trimmed) return;
+      if (!navigator.onLine) return;
       lastUserInputRef.current = trimmed;
 
       const userMsg: Message = {
@@ -109,6 +117,7 @@ export function useChat() {
   const retryLastMessage = useCallback(() => {
     const lastInput = lastUserInputRef.current;
     if (!lastInput) return;
+    if (!navigator.onLine) return;
 
     useChatStore.getState().removeLastAssistant();
 
@@ -139,6 +148,9 @@ export function useChat() {
       }
     };
   }, []);
+  useEffect(() => {
+    startStreamRef.current = startStream;
+  }, [startStream]);
 
   const resetChat = useCallback(() => {
     abortRef.current?.abort();
@@ -151,6 +163,7 @@ export function useChat() {
 
   return {
     messages,
+    isOnline,
     isStreaming,
     isLoading,
     sendMessage,

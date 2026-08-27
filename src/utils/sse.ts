@@ -1,11 +1,8 @@
+import type { SSEOptions } from "@/types";
+import { isError, isAbortError } from "@/utils/errors";
+
 const SSE_EVENT_REGEX = /^data:\s*(.*)$/;
-interface SSEOptions {
-  onMessage: (data: string) => void;
-  onDone?: () => void;
-  onError?: (err: Error) => void;
-  signal?: AbortSignal;
-}
-export async function streamSSE(url: string, body: Record<string, unknown>, options: SSEOptions) {
+export async function streamSSE<T extends Record<string, unknown>>(url: string, body: T, options: SSEOptions) {
   const { onMessage, onDone, onError, signal } = options;
   try {
     const response = await fetch(url, {
@@ -45,7 +42,8 @@ export async function streamSSE(url: string, body: Record<string, unknown>, opti
       }
     }
   } catch (err) {
-    if ((err as Error).name === "AbortError") return;
-    onError?.(err as Error);
+    if (isAbortError(err)) return;
+    if (isError(err)) onError?.(err);
+    else onError?.(new Error(String(err)));
   }
 }

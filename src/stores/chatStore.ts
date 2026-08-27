@@ -1,12 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Message } from "@/types";
-
-interface Session {
-  id: string;
-  title: string;
-  createdAt: number;
-}
+import type { Message, Session } from "@/types";
 
 interface ChatStore {
   sessions: Session[];

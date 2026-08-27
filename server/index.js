@@ -18,9 +18,13 @@ app.get("/health", (req, res) => {
   res.json({ ok: true });
 });
 app.post("/api/chat/stream", async (req, res) => {
-  const { message, model } = req.body ?? {};
-  if (!message || typeof message !== "string") {
-    return res.status(400).json({ error: "message 必填" });
+  const { messages, model } = req.body ?? {};
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: "messages 必填且为非空数据" });
+  }
+  const ok = messages.every((m) => m && (m.role === "user" || m.role === "assistant" || m.role === "system") && typeof m.content === "string" && m.content.trim().length > 0);
+  if (!ok) {
+    return res.status(400).json({ error: "messages 数据格式不正确" });
   }
   const apiKey = process.env.LLM_API_KEY;
   const baseURL = (process.env.LLM_API_BASE || "https://api.deepseek.com").replace(/\/$/, "");
@@ -37,7 +41,7 @@ app.post("/api/chat/stream", async (req, res) => {
       body: JSON.stringify({
         model: model || "deepseek-chat",
         stream: true,
-        messages: [{ role: "user", content: message }],
+        messages,
       }),
     });
     if (!upstream.ok) {
