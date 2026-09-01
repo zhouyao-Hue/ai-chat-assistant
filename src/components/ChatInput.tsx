@@ -75,25 +75,27 @@ const ChatInput = memo(
 
     return (
       <div className="chat-input-bar" aria-busy={isStreaming}>
-        <input
-          ref={ref}
-          className="chat-input-field"
-          aria-label="消息输入框"
-          value={text}
-          placeholder={isOffline ? "网络已断开，无法发送…" : "输入消息…"}
-          onChange={handleChange}
-          onKeyDown={(e) => e.key === "Enter" && !buttonDisabled && handleSend()}
-          disabled={inputDisabled}
-        />
-        <button
-          onClick={handleSend}
-          aria-label={actionLabel}
-          type="button"
-          disabled={buttonDisabled}
-          className={`chat-send-btn ${btnMod}`}
-        >
-          {btnText}
-        </button>
+        <div className="chat-input-dock">
+          <input
+            ref={ref}
+            className="chat-input-field"
+            aria-label="消息输入框"
+            value={text}
+            placeholder={isOffline ? "网络已断开，无法发送…" : "输入消息…"}
+            onChange={handleChange}
+            onKeyDown={(e) => e.key === "Enter" && !buttonDisabled && handleSend()}
+            disabled={inputDisabled}
+          />
+          <button
+            onClick={handleSend}
+            aria-label={actionLabel}
+            type="button"
+            disabled={buttonDisabled}
+            className={`chat-send-btn ${btnMod}`}
+          >
+            {btnText}
+          </button>
+        </div>
       </div>
     );
   }),

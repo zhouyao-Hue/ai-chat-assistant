@@ -104,6 +104,7 @@ export default function ChatPage() {
         {messages.length === 0 && !isLoading ? (
           <div className="chat-empty">
             <div className="chat-empty-card">
+              <p className="chat-empty-brand">Lumen</p>
               <div className="chat-empty-ornament" aria-hidden="true" />
               <p className="chat-empty-title">开始一段新对话</p>
               <p className="chat-empty-desc">在下方输入消息，按 Enter 或点发送</p>

@@ -9,9 +9,9 @@ function Sidebar() {
       <div className="sidebar-header">
         <div className="sidebar-brand">
           <span className="sidebar-brand-mark" aria-hidden="true" />
-          Lumen
+          <span className="sidebar-brand-text">Lumen</span>
         </div>
-        <div className="sidebar-brand-sub">AI Chat</div>
+        <div className="sidebar-brand-sub">林间工作台 · AI Chat</div>
       </div>
       <div className="sidebar-list">
         <SessionList />

@@ -189,4 +189,5 @@ npx wrangler pages deploy dist --project-name=ai-chat-assistant --branch=main --
 
 改 CORS / `LLM_*`：Render → **Environment** 保存后按需再 Manual Deploy。
 
-面试话术 / Week13 预习：`docs/interview.md`、`docs/fastapi-prep.md`。
+面试话术 / Week13 预习：`docs/interview.md`、`docs/fastapi-prep.md`。  
+技术随笔（可投稿/发博客）：`docs/article-five-counterintuitive-lessons.md`。
