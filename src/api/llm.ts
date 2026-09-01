@@ -2,6 +2,10 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { HttpError, isError, isAbortError } from "@/utils/errors";
 import type { StreamChatOptions } from "@/types";
 
+/**
+ * 调用 BFF 流式聊天接口，解析 SSE 并逐 token 回调。
+ * @param options - messages、AbortSignal 与 onToken / onDone / onError
+ */
 export async function streamChat(options: StreamChatOptions) {
   const { messages, signal, onToken, onDone, onError } = options;
   const { model } = useSettingsStore.getState();

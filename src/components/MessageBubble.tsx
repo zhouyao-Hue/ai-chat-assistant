@@ -1,6 +1,13 @@
 import type { Message } from "@/types";
 import { memo, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
+
+/**
+ * 将时间戳格式化为「今天/昨天/日期 + 时分」。
+ * @param ts - Unix 毫秒时间戳
+ * @returns 可读时间字符串
+ */
 function formatTime(ts: number): string {
   const date = new Date(ts);
   const now = new Date();
@@ -14,8 +21,16 @@ function formatTime(ts: number): string {
   if (isYesterday) return `昨天 ${date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
   return date.toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
 }
-function MessageBubble({ message }: { message: Message }) {
+
+/**
+ * 单条消息气泡：Markdown（消毒）、折叠长文、复制、流式光标。
+ * @param props.message - 消息实体
+ * @param props.isStreaming - 是否为当前流式中的 assistant 气泡
+ */
+function MessageBubble({ message, isStreaming = false }: { message: Message; isStreaming?: boolean }) {
   const [copied, setCopied] = useState(false);
+
+  /** 复制消息正文到剪贴板 */
   const handleCopy = async () => {
     await navigator.clipboard.writeText(message.content);
     setCopied(true);
@@ -28,18 +43,25 @@ function MessageBubble({ message }: { message: Message }) {
   return (
     <div className={`msg-row ${isUser ? "msg-row-user" : "msg-row-ai"}`}>
       <div className={`msg-bubble ${isUser ? "msg-bubble-user" : "msg-bubble-ai"}`}>
-        <div className="msg-content" style={isLong && !expanded ? { maxHeight: 160, overflow: "hidden" } : undefined}>
-          {isUser ? message.content : <ReactMarkdown>{message.content}</ReactMarkdown>}
+        <div className={`msg-content${isLong && !expanded ? " msg-content-collapsed" : ""}`}>
+          {isUser ? message.content : <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{message.content}</ReactMarkdown>}
+          {isStreaming && (
+            <span className="streaming-cursor" aria-hidden="true">
+              ▍
+            </span>
+          )}
         </div>
         {isLong && (
-          <button type="button" className="msg-expand-btn" onClick={() => setExpanded((v) => !v)} style={{ marginTop: 8, cursor: "pointer" }}>
+          <button type="button" className="msg-expand-btn" onClick={() => setExpanded((v) => !v)}>
             {expanded ? "收起" : "展开全文"}
           </button>
         )}
-        <div className="msg-time">{formatTime(message.timestamp)}</div>
-        <button type="button" onClick={handleCopy} className="msg-copy-btn" aria-label={copied ? "已复制到剪切板" : "复制消息内容"}>
-          {copied ? "已复制!" : "复制"}
-        </button>
+        <div className="msg-meta">
+          <span className="msg-time">{formatTime(message.timestamp)}</span>
+          <button type="button" onClick={handleCopy} className="msg-copy-btn" aria-label={copied ? "已复制到剪切板" : "复制消息内容"}>
+            {copied ? "已复制" : "复制"}
+          </button>
+        </div>
       </div>
     </div>
   );

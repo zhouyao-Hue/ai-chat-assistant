@@ -5,10 +5,15 @@ import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useChatStore } from "@/stores/chatStore";
 import { trimMessages } from "@/utils/trimMessages";
 import type { Message, ChatMessagePayload } from "@/types";
+
 const MAX_RETRIES = 3;
 const BASE_DELAY = 1000;
 const MAX_DELAY = 30000;
 
+/**
+ * 聊天核心 Hook：发送、流式、重试、中断。
+ * @returns 消息列表与发送 / 停止 / 重试操作
+ */
 export function useChat() {
   const isOnline = useOnlineStatus();
   const abortRef = useRef<AbortController | null>(null);
@@ -20,6 +25,12 @@ export function useChat() {
   const startStreamRef = useRef<((userInput: string, assistantMsg: Message) => void) | null>(null);
   const isStreaming = streamingMessageId !== null;
   const isLoading = messages.length === 0 && isStreaming;
+
+  /**
+   * 发起一次流式请求：组装 system + 历史，处理 token / 错误 / 重试。
+   * @param userInput - 当前用户输入（重试时回用）
+   * @param assistantMsg - 占位 assistant 消息
+   */
   const startStream = useCallback((userInput: string, assistantMsg: Message) => {
     const controller = new AbortController();
     abortRef.current = controller;
@@ -70,10 +81,15 @@ export function useChat() {
     });
   }, []);
 
+  /**
+   * 发送用户消息并创建占位 assistant 气泡；流式中拒绝连发。
+   * @param userInput - 用户输入原文
+   */
   const sendMessage = useCallback(
     (userInput: string) => {
       const trimmed = userInput.trim();
       if (!trimmed) return;
+      if (useChatStore.getState().streamingMessageId !== null) return;
       if (!navigator.onLine) return;
       lastUserInputRef.current = trimmed;
 
@@ -104,6 +120,7 @@ export function useChat() {
     [startStream],
   );
 
+  /** 中断当前流式生成与待执行的重试；若 assistant 仍为空则删除空气泡。 */
   const stopGeneration = useCallback(() => {
     abortRef.current?.abort();
     if (retryTimerRef.current) {
@@ -112,8 +129,13 @@ export function useChat() {
     }
     retryCountRef.current = 0;
     useChatStore.getState().setStreamingMessageId(null);
+    const last = useChatStore.getState().messages.at(-1);
+    if (last?.role === "assistant" && !last.content.trim()) {
+      useChatStore.getState().removeLastAssistant();
+    }
   }, []);
 
+  /** 删除最后一条 assistant 回复并按上次用户输入重新请求。 */
   const retryLastMessage = useCallback(() => {
     const lastInput = lastUserInputRef.current;
     if (!lastInput) return;
@@ -148,18 +170,10 @@ export function useChat() {
       }
     };
   }, []);
+
   useEffect(() => {
     startStreamRef.current = startStream;
   }, [startStream]);
-
-  const resetChat = useCallback(() => {
-    abortRef.current?.abort();
-    if (retryTimerRef.current) {
-      clearTimeout(retryTimerRef.current);
-      retryTimerRef.current = null;
-    }
-    useChatStore.getState().clearMessages();
-  }, []);
 
   return {
     messages,
@@ -169,6 +183,5 @@ export function useChat() {
     sendMessage,
     stopGeneration,
     retryLastMessage,
-    resetChat,
   };
 }

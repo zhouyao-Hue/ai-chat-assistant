@@ -9,17 +9,27 @@ interface ChatStore {
   messages: Message[];
   streamingMessageId: string | null;
 
+  /** 创建新会话（先保存当前会话消息）并切换为当前 */
   createSession: () => void;
+  /** 切换会话并持久化当前会话消息 */
   switchSession: (id: string) => void;
+  /** 追加消息到当前会话 */
   addMessages: (msgs: Message[]) => void;
+  /** 将 token 追加到最后一条 assistant 消息 */
   updateLastAssistant: (token: string) => void;
+  /** 删除最后一条 assistant 消息（重试用） */
   removeLastAssistant: () => void;
+  /** 标记正在流式输出的 assistant 消息 id */
   setStreamingMessageId: (id: string | null) => void;
+  /** 清空当前会话消息 */
   clearMessages: () => void;
+  /** 删除指定会话，必要时切换到相邻会话 */
   deleteSession: (id: string) => void;
+  /** 重命名会话标题 */
   renameSession: (id: string, title: string) => void;
 }
 
+/** 多会话聊天状态（localStorage 持久化） */
 export const useChatStore = create<ChatStore>()(
   persist(
     (set) => ({
@@ -35,11 +45,16 @@ export const useChatStore = create<ChatStore>()(
           title: "新会话",
           createdAt: Date.now(),
         };
-        set((s) => ({
-          sessions: [...s.sessions, newSession],
-          currentSessionId: newSession.id,
-          messages: [],
-        }));
+        set((s) => {
+          const saved = s.currentSessionId ? { ...s.messagesBySession, [s.currentSessionId]: s.messages } : s.messagesBySession;
+          return {
+            sessions: [...s.sessions, newSession],
+            currentSessionId: newSession.id,
+            messagesBySession: saved,
+            messages: [],
+            streamingMessageId: null,
+          };
+        });
       },
 
       switchSession: (id) =>

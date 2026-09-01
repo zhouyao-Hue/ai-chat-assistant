@@ -4,6 +4,7 @@ import Layout from "@/components/Layout";
 import ChatPage from "@/pages/ChatPage";
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 
+/** 根路由：聊天首页 + lazy 设置页。 */
 export default function App() {
   return (
     <Routes>
@@ -12,7 +13,7 @@ export default function App() {
         <Route
           path="settings"
           element={
-            <Suspense fallback={<div style={{ padding: 16 }}>加载设置页...</div>}>
+            <Suspense fallback={<div className="route-fallback">加载设置页…</div>}>
               <SettingsPage />
             </Suspense>
           }

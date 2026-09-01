@@ -8,6 +8,6 @@ RUN npm install --omit=dev
 COPY server ./server
 
 ENV NODE_ENV=production
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["node", "server/index.js"]
